@@ -1,24 +1,45 @@
 package assignment01;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
-public class FasterMergeSort extends Sort{
-	
-	// Finds and returns the index of the last element of the next sorted region
-	public int findNext(double[] arr, int start) {		
-		int index = start;
-		for (int i = start; i < arr.length-1; i++) {
-			if (arr[i] < arr[i+1]) {
-				index++;
-			} else {
-				return index;
+public class FasterMergeSort extends Sort {
+	// Retuns a 2D array list containing the start and end indices for each sorted region
+	private static ArrayList<int[]> findSorted(double[] arr){
+		ArrayList<int[]> indices = new ArrayList<int[]>();
+		
+		int i = 0;
+		while (i < arr.length) {
+			int start = i;
+			while (i < arr.length-1 && arr[i+1] >= arr[i]) {
+				i++;
 			}
+			int end = i;
+			int[] index = {start, end};
+			indices.add(index);
+			i++;
 		}
-		return index;
+		return indices;
 	}
 	
-	public void merge(double[] arr, double[] left, double[] right) {
-		int li = 0, ri = 0, ai = 0;
+	// Returns a double array from the original unsorted array given the start and end points
+	public static double[] getRegion(double[] arr, int[] range) {
+		int start = range[0];
+		int end = range[1];
+		
+		double[] region = new double[(end-start)+1];
+		int j = 0;
+		
+		for (int i = start; i <= end; i++) {
+			region[j] = arr[i];
+			j++;
+		}
+		return region;
+	}
+	
+	// Merges two sorted regions into the original array, starting where the left array starts
+	public static void merge(double[] arr, double[] left, double[] right, int start) {
+
+		int li = 0, ri = 0, ai = start;
 		
 		while (li < left.length || ri < right.length) {
 			if (li == left.length) {
@@ -36,20 +57,23 @@ public class FasterMergeSort extends Sort{
 		}
 	}
 	
-	@Override
 	public double[] sort(double[] arr) {
-		int run1 = findNext(arr, 0);
-		if (run1 < arr.length-1) {
-			double[] left = Arrays.copyOfRange(arr, 0, run1+1);
-			int run2 = findNext(arr, run1+1)+1;
-			double[] right = Arrays.copyOfRange(arr, run1+1, run2);
-			
-			merge(arr, left, right);			
-			sort(arr);
 
+		ArrayList<int[]> indices = new ArrayList<int[]>();
+		
+		
+		while (indices.size() != 1) {
+			indices = findSorted(arr);
+			
+			for (int i = 0; i < indices.size()-1; i += 2) {
+				double[] left = getRegion(arr, indices.get(i));
+				double[] right = getRegion(arr, indices.get(i+1));
+				
+				merge(arr, left, right, indices.get(i)[0]);
+			}
 		}
 		return arr;
+		
 	}
-	
 
 }
